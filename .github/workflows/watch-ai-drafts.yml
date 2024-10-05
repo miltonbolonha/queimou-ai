@@ -1,0 +1,60 @@
+name: "[🤰 DIGEST IT]: Prompt to Post System - The baby is yours!"
+
+on:
+  label:
+    types:
+      - created
+      - edited
+  push:
+    paths:
+      - "content/ai_drafts/**" # Monitorar mudanças na pasta de drafts
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
+        with:
+          token: ${{ secrets.PAT }}
+
+      - name: "Create env file"
+        run: |
+          touch core/.env
+          echo CHATGPT_API_KEY=${{ secrets.CHATGPT_API_KEY }} >> core/.env
+          echo CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} >> core/.env
+          cat core/.env
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: "[🤰 DIGEST IT]: run() - The baby is yours!"
+        run: npm run chatgpt
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'schindyguy'
+          git config --global user.email 'bschindelheim@gmail.com'
+          git status
+          git add core content .github
+          git status
+          if git diff-index --quiet HEAD --; then
+              echo "No changes to commit"
+          else
+              git commit -m "✔️ [Auto Commit]: Convert drafts to posts and build changes"
+              fi
+
+      - name: Pull with rebase
+        run: git pull --rebase
+
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        run: |
+          git push https://$GITHUB_TOKEN@github.com/schindyguy/mt.git HEAD:master

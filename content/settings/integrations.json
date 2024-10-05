@@ -1,0 +1,13 @@
+{
+  "cloudinaryIntegration": {
+    "cloudApiKey": "338884965113117",
+    "cloudName": "dyxuhpt7j",
+    "folderName": "queimouai"
+  },
+  "googleIntegration": {
+    "adsClientID": "",
+    "adsSlot": "",
+    "gaID": "",
+    "adsAccount": ""
+  }
+}

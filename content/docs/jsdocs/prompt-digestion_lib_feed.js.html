@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: prompt-digestion/lib/feed.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: prompt-digestion/lib/feed.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// const fs = require("fs-extra");
+// const { generateAtom, generateRSS } = require("./generateAtomRSS");
+// const { generateAmpStories } = require("./apmStories");
+
+// async function writeAtom(publicSourceFolder) {
+//   const fileAtomPath = `${publicSourceFolder}/atom-feed.xml`;
+
+//   try {
+//     return fs.writeFileSync(fileAtomPath, await generateAtom());
+//   } catch (error) {
+//     process.stdout.write(error);
+//     return process.stdout.write(`❌ [Atom.xml]: ERROR.`);
+//   }
+// }
+
+// async function writeRSS() {
+//   const fileRSSPath = `${publicSourceFolder}/rss-feed.xml`;
+//   return fs.writeFileSync(fileRSSPath, await generateRSS());
+// }
+
+// async function writeAmpStories(
+//   params
+// ) {
+//   const {pagesDatas,
+//     postsDatas,
+//     siteUrl,
+//     postAuthorLogo,
+//     brandName,
+//     cardLogo,
+//     publicSourceFolder}=params
+//   const ampStories = await generateAmpStories(
+//     pagesDatas,
+//     postsDatas,
+//     siteUrl,
+//     postAuthorLogo,
+//     brandName,
+//     cardLogo
+//   );
+//   ampStories.forEach((storie) => {
+//     const storyPath = `${publicSourceFolder}/amp/${storie?.slug}.stories.amp.html`;
+//     try {
+//       return fs.writeFileSync(storyPath, storie.ampStory);
+//       // console.log(`✔️ [Amp Storie]: AMP Story stored successfully.`);
+//     } catch (error) {
+//       console.log(error);
+//       console.log(`❌ [Amp Storie]: ERROR storing AMP Story.`);
+//     }
+//   });
+// }
+
+// module.exports = {
+//   writeAtom,
+//   writeRSS,
+//   writeAmpStories,
+// };
+// const fs = require("fs-extra");
+const { Feed } = require("feed");
+
+// const { generateAtom } = require("./atom");
+// const { generateRSS } = require("./rss");
+// const { generateAmpStories } = require("./apmStories");
+
+/**
+ * Function to add seconds to a date.
+ *
+ * @param {Date} date - The date object to modify.
+ * @param {number} seconds - The number of seconds to add.
+ * @returns {Date} The modified date.
+ */
+function addHackSeconds(date, seconds) {
+  date.setSeconds(date.getSeconds() + seconds);
+  return date;
+}
+
+/**
+ * Creates a Feed instance based on the provided parameters.
+ *
+ * @param {string} brandName - The name of the brand.
+ * @param {string} brandEmail - The email of the brand.
+ * @param {string} brandDescription - The description of the brand.
+ * @param {string} siteUrl - The URL of the site.
+ * @param {string} i18n - The language of the feed.
+ * @param {string} cardLogo - The logo of the brand.
+ * @param {string} faviconLogo - The favicon of the brand.
+ * @returns {Feed} A new Feed instance.
+ */
+function createFeed({
+  brandName,
+  brandEmail,
+  brandDescription,
+  siteUrl,
+  i18n,
+  cardLogo,
+  faviconLogo,
+}) {
+  return new Feed({
+    title: `${brandName} Atom Feed`,
+    description: brandDescription,
+    id: siteUrl + "/",
+    link: siteUrl + "/",
+    language: i18n,
+    image: cardLogo,
+    favicon: faviconLogo,
+    copyright: `© ${new Date().getFullYear()} ${brandName}. All Rights Reserved.`,
+    generator: `${brandDescription} Feed`,
+    feedLinks: {
+      atom: siteUrl + "/atom-feed.xml",
+      rss: siteUrl + "/rss-feed.xml",
+    },
+    author: {
+      name: brandName,
+      email: brandEmail,
+      link: siteUrl,
+    },
+  });
+}
+
+module.exports = {
+  createFeed,
+  addHackSeconds,
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DigestPipeline.html">DigestPipeline</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addHackSeconds">addHackSeconds</a></li><li><a href="global.html#authorPrompt">authorPrompt</a></li><li><a href="global.html#contentPrompt">contentPrompt</a></li><li><a href="global.html#createFeed">createFeed</a></li><li><a href="global.html#draftPrompt">draftPrompt</a></li><li><a href="global.html#executeStep">executeStep</a></li><li><a href="global.html#generateAmpStories">generateAmpStories</a></li><li><a href="global.html#generateAtom">generateAtom</a></li><li><a href="global.html#generatePostContent">generatePostContent</a></li><li><a href="global.html#generateRSS">generateRSS</a></li><li><a href="global.html#processDraftFromFile">processDraftFromFile</a></li><li><a href="global.html#processImageGeneration">processImageGeneration</a></li><li><a href="global.html#processPseudoDraft">processPseudoDraft</a></li><li><a href="global.html#prompts">prompts</a></li><li><a href="global.html#readDraftFrontmatter">readDraftFrontmatter</a></li><li><a href="global.html#responsePrompt">responsePrompt</a></li><li><a href="global.html#savePostContent">savePostContent</a></li><li><a href="global.html#scrapeContentPrompt">scrapeContentPrompt</a></li><li><a href="global.html#scrapeToAiPipeline">scrapeToAiPipeline</a></li><li><a href="global.html#storyConstructor">storyConstructor</a></li><li><a href="global.html#universalPrompt">universalPrompt</a></li><li><a href="global.html#uploadCloudinary">uploadCloudinary</a></li><li><a href="global.html#writeAdminConfigs">writeAdminConfigs</a></li><li><a href="global.html#writeAdsTxt">writeAdsTxt</a></li><li><a href="global.html#writeAmpStories">writeAmpStories</a></li><li><a href="global.html#writeAtom">writeAtom</a></li><li><a href="global.html#writeRSS">writeRSS</a></li><li><a href="global.html#writeRobotsTxt">writeRobotsTxt</a></li><li><a href="global.html#writeStylesScss">writeStylesScss</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Tue Sep 24 2024 10:12:47 GMT-0300 (Horário Padrão de Brasília)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

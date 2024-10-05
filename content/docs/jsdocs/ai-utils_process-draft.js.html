@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: ai-utils/process-draft.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: ai-utils/process-draft.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const fs = require("fs");
+const path = require("path");
+const matter = require("gray-matter");
+const yaml = require("js-yaml");
+
+const { slugify, debugMe } = require("../utils");
+
+const { uploadCloudinary } = require("./cloudinary");
+const { sendToChatGPT, getImageFromDalle } = require("./requests");
+const { webScraping } = require("./web-scraping");
+const prompts = require("./prompts");
+
+const contentFolder = path.join(__dirname, "../../../../content");
+
+/**
+ * Processes a draft file, scrapes web content, and generates a blog post using AI tools.
+ *
+ * @param {string} filePath - Path to the draft markdown file.
+ * @param {object} aiSettings - AI configuration settings.
+ * @param {object} authorsData - Data related to post authors.
+ * @param {object} i18n - Internationalization settings.
+ * @param {boolean} debug - Enables debug mode for logging additional information.
+ */
+async function processDraftFromFile(
+  filePath,
+  aiSettings,
+  authorsData,
+  i18n,
+  debug
+) {
+  try {
+    // Step 1: Extract frontmatter and content from the draft file
+    const draftFrontmatter = await readDraftFrontmatter(filePath, false, debug);
+    if (!draftFrontmatter) return null;
+
+    // Generate the post content
+    await generatePostContent(
+      draftFrontmatter,
+      aiSettings,
+      authorsData,
+      i18n,
+      false,
+      debug
+    );
+  } catch (err) {
+    console.error("Error processing draft file:", err);
+  }
+}
+
+/**
+ * Processes direct data input, generates a blog post using AI tools, and saves the post.
+ *
+ * @param {object} dataInput - The direct data input containing necessary information for the post.
+ * @param {object} aiSettings - AI configuration settings.
+ * @param {object} authorsData - Data related to post authors.
+ * @param {object} i18n - Internationalization settings.
+ * @param {boolean} debug - Enables debug mode for logging additional information.
+ */
+async function processDirectData(
+  dataInput,
+  aiSettings,
+  authorsData,
+  i18n,
+  debug
+) {
+  try {
+    // Step 1: Construct pseudo frontmatter from direct data input
+    const pseudoFrontmatter = {
+      frontmatter: {},
+      content: "",
+      draftFilePath: null,
+    };
+
+    // Generate the post content
+    await generatePostContent(
+      pseudoFrontmatter,
+      aiSettings,
+      authorsData,
+      i18n,
+      true,
+      debug
+    );
+  } catch (err) {
+    console.error("Error processing direct data:", err);
+  }
+}
+
+/**
+ * Generates and saves the blog post content using AI, based on the provided frontmatter.
+ *
+ * @param {object} frontmatter - The frontmatter data, whether from a draft or direct input.
+ * @param {object} aiSettings - AI configuration settings.
+ * @param {object} authorsData - Data related to post authors.
+ * @param {object} i18n - Internationalization settings.
+ * @param {boolean} autoPost - Indicates if the post is being processed automatically without a specific draft.
+ * @param {boolean} debug - Enables debug mode for logging additional information.
+ */
+async function generatePostContent(
+  frontmatter,
+  aiSettings,
+  authorsData,
+  i18n,
+  autoPost,
+  debug
+) {
+  try {
+    // Step 2: Use AI to generate content and images based on the frontmatter
+    const aiGeneratedContent = await scrapeToAiPipeline(
+      frontmatter,
+      aiSettings,
+      authorsData,
+      i18n,
+      autoPost,
+      debug
+    );
+    const postImgsUrl = aiGeneratedContent.postImgsUrl;
+
+    // Step 3: Parse the AI-generated content into a markdown format, incorporating images
+    const postContent = MD.parse(
+      postImgsUrl,
+      frontmatter,
+      aiGeneratedContent.aiResponse
+    );
+
+    // Step 4: Save the final post content to a file and optionally delete the draft
+    savePostContent(
+      postContent,
+      aiGeneratedContent.aiResponse,
+      frontmatter.draftFilePath,
+      autoPost
+    );
+  } catch (err) {
+    console.error("Error generating post content:", err);
+  }
+}
+
+// const aiSettings = require(contentFolder + "/settings/ai.json");
+
+// /**
+//  * Processes a draft file, scrape web content and generates a blog post using AI tools.
+//  * Handles reading frontmatter, generating AI content, saving the post, and deleting the draft if necessary.
+//  *
+//  * @param {string} filePath - Path to the draft markdown file.
+//  * @param {boolean} autoPost - Indicates if the post is being processed automatically without a specific draft.
+//  * @param {boolean} debug - Enables debug mode for logging additional information.
+//  */
+// async function processDraft(
+//   filePath,
+//   aiSettings,
+//   authorsData,
+//   i18n,
+//   autoPost,
+//   debug
+// ) {
+//   try {
+//     // Step 1: Extract frontmatter and content from the draft file
+//     const draftFrontmatter = await readDraftFrontmatter(
+//       filePath,
+//       autoPost,
+//       debug
+//     );
+//     if (!draftFrontmatter) return null;
+
+//     // Step 2: Use AI to generate content and images based on the draft's frontmatter
+//     const aiGeneratedContent = await scrapeToAiPipeline(
+//       draftFrontmatter,
+//       aiSettings,
+//       authorsData,
+//       i18n,
+//       autoPost,
+//       debug
+//     );
+//     const postImgsUrl = aiGeneratedContent.postImgsUrl;
+
+//     // Step 3: Parse the AI-generated content into a markdown format, incorporating images
+//     const postContent = MD.parse(
+//       postImgsUrl,
+//       draftFrontmatter,
+//       aiGeneratedContent.aiResponse
+//     );
+
+//     // Step 4: Save the final post content to a file and optionally delete the draft
+//     savePostContent(
+//       postContent,
+//       aiGeneratedContent.aiResponse,
+//       draftFrontmatter.draftFilePath,
+//       autoPost
+//     );
+//   } catch (err) {
+//     console.error("Erro ao processar draft:", err);
+//   }
+// }
+
+/**
+ * Reads the frontmatter and content from a draft markdown file.
+ * If 'autoPost' is true, it returns an empty structure.
+ *
+ * @param {string} filePath - Path to the draft markdown file.
+ * @param {boolean} autoPost - Indicates if the post is being processed automatically without a specific draft.
+ * @param {boolean} debug - Enables debug mode for logging additional information.
+ * @returns {object|null} An object containing the frontmatter, content, and draft file path, or null if an error occurs.
+ */
+async function readDraftFrontmatter(filePath, autoPost, debug) {
+  if (autoPost) {
+    return { frontmatter: {}, content: "", draftFilePath: null };
+  }
+
+  debugMe(debug, "Draft File Path", filePath);
+
+  try {
+    // Read the content of the draft file
+    const fileContent = fs.readFileSync(filePath, "utf8");
+    const { data, content } = matter(fileContent); // Extract frontmatter and content using gray-matter
+    const draftData = { frontmatter: data, content, draftFilePath: filePath };
+    debugMe(debug, "Web Scraping URL Found", draftData); // Log the extracted data if debugging
+    return draftData;
+  } catch (error) {
+    console.error(`Erro ao ler o arquivo ${filePath}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Pipeline to generate AI-based content and images.
+ * It combines the draft's frontmatter with scraped data (if needed) and prompts AI tools to generate the post content.
+ *
+ * @param {object} draftFrontmatter - Object containing the frontmatter, content, and draft file path.
+ * @param {boolean} autoPost - Indicates if the post is being processed automatically without a specific draft.
+ * @param {boolean} debug - Enables debug mode for logging additional information.
+ * @returns {object} An object containing the AI-generated content and the URLs of generated images.
+ */
+async function scrapeToAiPipeline(
+  draftFrontmatter,
+  aiSettings,
+  authorsData,
+  i18n,
+  autoPost,
+  debug
+) {
+  const { frontmatter, content } = draftFrontmatter;
+  let webScrape = null;
+  if (autoPost) {
+    // Get a random news source URL from AI settings for scraping
+    const randomIndex = Math.floor(Math.random() * aiSettings?.length);
+    const randomSourceUrl = aiSettings[randomIndex]?.href;
+    webScrape = await webScraping([randomSourceUrl], autoPost, debug);
+  } else {
+    // debugMe(debug, "Links to Scraping", frontmatter?.linkAiDraft);
+    webScrape = await webScraping(
+      Object.values(frontmatter?.linkAiDraft),
+      autoPost,
+      debug
+    );
+  }
+
+  debugMe(debug, "Web Scraping", webScrape);
+
+  // Generate prompts for AI based on the frontmatter, content, and optionally the latest news
+  const promptText = Object.values(
+    await prompts(
+      authorsData,
+      content,
+      aiSettings?.mdTransformPrompt,
+      aiSettings?.jsonResponse,
+      autoPost ? aiSettings?.aiUrlSource : frontmatter.linkAiDraft,
+      i18n,
+      autoPost,
+      webScrape
+    )
+  )
+    .filter(Boolean)
+    .join("\n\n");
+
+  debugMe(debug, "Prompts Sent", promptText);
+
+  // Send the prompts to ChatGPT and get the AI-generated response
+  const aiResponse = await sendToChatGPT(promptText);
+
+  debugMe(debug, "A.I. Response", aiResponse);
+
+  // Generate images based on the prompts using DALL-E
+  const gptImgsUrl = await processImageGeneration(
+    frontmatter?.main_image_prompt || aiResponse?.title,
+    frontmatter?.additional_image_prompts || []
+  );
+
+  debugMe(debug, "Dall-E Images", gptImgsUrl);
+
+  // Upload the generated images to Cloudinary and get their URLs
+  const postImgsUrl = await uploadCloudinary(gptImgsUrl);
+
+  debugMe(debug, "Cloudinary Upload", postImgsUrl);
+
+  return { aiResponse, postImgsUrl };
+}
+
+const MD = {
+  /**
+   * Parses the generated AI content and images into markdown format.
+   * The content is structured with embedded images, and frontmatter is created for the post.
+   *
+   * @param {array} postImgsUrl - Array of URLs for the images generated by AI.
+   * @param {object} draftFrontmatter - The original frontmatter extracted from the draft.
+   * @param {object} aiResponse - The response content generated by the AI.
+   * @returns {string} The formatted markdown content for the post.
+   */
+  parse: function (postImgsUrl, draftFrontmatter, aiResponse) {
+    //organizePostContent
+    const { frontmatter } = draftFrontmatter;
+
+    const postFrontmatter = {
+      title: aiResponse.title,
+      author: aiResponse.author,
+      categories:
+        aiResponse.categories || frontmatter.categories || "Uncategorized",
+      tags: aiResponse.tag || aiResponse.tags || frontmatter.tags || [],
+      date: new Date().toISOString(),
+      image: postImgsUrl[0]?.mainImg || "cover.jpg",
+      draft: true,
+      featuredPost: false,
+      layout: "post",
+    };
+
+    let postBody = aiResponse?.body;
+    let imageIndex = 0;
+
+    const remainingImages = postImgsUrl?.slice(1) || [];
+
+    // Embed images in the markdown content where headings are present
+    postBody = postBody?.replace(/(##\s+.+)/g, (heading) => {
+      if (imageIndex &lt; remainingImages?.length) {
+        const imageMarkdown = `![${aiResponse.title}](${remainingImages[imageIndex].headingsImgs})\n\n`;
+        imageIndex++;
+        return `${imageMarkdown}${heading}`;
+      }
+      return heading;
+    });
+
+    return `---\n${yaml.dump(postFrontmatter)}---\n\n${postBody}`;
+  },
+};
+
+/**
+ * Saves the final post content to a file and optionally deletes the draft file.
+ *
+ * @param {string} postContent - The final formatted content of the post in markdown.
+ * @param {object} aiResponse - The response content generated by the AI.
+ * @param {string} draftFilePath - Path to the original draft file.
+ * @param {boolean} autoPost - Indicates if the post is being processed automatically without a specific draft.
+ */
+function savePostContent(postContent, aiResponse, draftFilePath, autoPost) {
+  const postFilePath = path.join(contentFolder, "/posts");
+  const postSlug = slugify(aiResponse?.title);
+  const postFilename = `${postSlug || "fail-post"}.md`;
+
+  try {
+    fs.writeFileSync(`${postFilePath}/${postFilename}`, postContent, "utf8");
+    console.log(`Post gerado com sucesso: ${postFilePath}/${postFilename}`);
+
+    // Delete the original draft file if it's not an auto post
+    if (!autoPost &amp;&amp; draftFilePath) {
+      fs.unlinkSync(draftFilePath);
+      console.log(`Draft deletado com sucesso: ${draftFilePath}`);
+    }
+  } catch (error) {
+    console.error("Erro ao gravar post:", error);
+  }
+}
+
+/**
+ * Handles image generation by sending prompts to DALL-E.
+ * The main image prompt and additional prompts are processed, and the generated image URLs are returned.
+ *
+ * @param {string} main_image_prompt - The main prompt used to generate the primary image.
+ * @param {array} additional_image_prompts - An array of additional prompts for generating more images.
+ * @returns {array} An array of URLs for the generated images.
+ */
+async function processImageGeneration(
+  main_image_prompt,
+  additional_image_prompts
+) {
+  const imagesPrompts = [];
+
+  if (main_image_prompt) {
+    imagesPrompts.push(main_image_prompt);
+  }
+
+  if (additional_image_prompts?.length) {
+    imagesPrompts.push(...additional_image_prompts);
+  }
+
+  const generatedImageUrls = [];
+
+  for (const prompt of imagesPrompts) {
+    // Generate the image using DALL-E
+    const imageUrl = await getImageFromDalle(prompt.image_prompt || prompt);
+    if (imageUrl) {
+      generatedImageUrls.push(imageUrl);
+    }
+  }
+
+  return generatedImageUrls;
+}
+
+module.exports = { processDraftFromFile, processDirectData };
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DigestPipeline.html">DigestPipeline</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addHackSeconds">addHackSeconds</a></li><li><a href="global.html#authorPrompt">authorPrompt</a></li><li><a href="global.html#contentPrompt">contentPrompt</a></li><li><a href="global.html#createFeed">createFeed</a></li><li><a href="global.html#draftPrompt">draftPrompt</a></li><li><a href="global.html#executeStep">executeStep</a></li><li><a href="global.html#generateAmpStories">generateAmpStories</a></li><li><a href="global.html#generateAtom">generateAtom</a></li><li><a href="global.html#generatePostContent">generatePostContent</a></li><li><a href="global.html#generateRSS">generateRSS</a></li><li><a href="global.html#processDirectData">processDirectData</a></li><li><a href="global.html#processDraftFromFile">processDraftFromFile</a></li><li><a href="global.html#processImageGeneration">processImageGeneration</a></li><li><a href="global.html#prompts">prompts</a></li><li><a href="global.html#readDraftFrontmatter">readDraftFrontmatter</a></li><li><a href="global.html#responsePrompt">responsePrompt</a></li><li><a href="global.html#savePostContent">savePostContent</a></li><li><a href="global.html#scrapeContentPrompt">scrapeContentPrompt</a></li><li><a href="global.html#scrapeToAiPipeline">scrapeToAiPipeline</a></li><li><a href="global.html#storyConstructor">storyConstructor</a></li><li><a href="global.html#universalPrompt">universalPrompt</a></li><li><a href="global.html#uploadCloudinary">uploadCloudinary</a></li><li><a href="global.html#writeAdminConfigs">writeAdminConfigs</a></li><li><a href="global.html#writeAdsTxt">writeAdsTxt</a></li><li><a href="global.html#writeAmpStories">writeAmpStories</a></li><li><a href="global.html#writeAtom">writeAtom</a></li><li><a href="global.html#writeRSS">writeRSS</a></li><li><a href="global.html#writeRobotsTxt">writeRobotsTxt</a></li><li><a href="global.html#writeStylesScss">writeStylesScss</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Tue Sep 24 2024 00:28:06 GMT-0300 (Horário Padrão de Brasília)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

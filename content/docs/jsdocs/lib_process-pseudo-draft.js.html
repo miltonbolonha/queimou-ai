@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lib/process-pseudo-draft.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lib/process-pseudo-draft.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const generatePostContent = require("./generate-content");
+const debugMe = require("../utils/debug-me");
+
+// const fs = require("fs");
+// const path = require("path");
+// const matter = require("gray-matter");
+// const yaml = require("js-yaml");
+// const { slugify } = require("../utils");
+
+// const { uploadCloudinary } = require("./cloudinary");
+// const { chatGPT, dallE } = require("./requests");
+// const { webScraping } = require("./web-scraping");
+// const prompts = require("./prompts");
+
+// const contentFolder = path.join(__dirname, "../../../../content");
+
+/**
+ * Processes direct data input, generates a blog post using AI tools, and saves the post.
+ *
+ * @param {object} dataInput - The direct data input containing necessary information for the post.
+ * @param {object} aiSettings - AI configuration settings.
+ * @param {object} authorsData - Data related to post authors.
+ * @param {object} i18n - Internationalization settings.
+ * @param {boolean} debug - Enables debug mode for logging additional information.
+ */
+async function processPseudoDraft(
+  contentFolderPath,
+  dataInput,
+  aiSettings,
+  authorsData,
+  i18n,
+  gptKey,
+  folderName,
+  cloudName,
+  cloudApiKey,
+  cloudinarySecret,
+  debug
+) {
+  debugMe(debug, "Pseudo Draft", {
+    dataInput,
+    gptKey,
+    i18n,
+    debug,
+  });
+
+  try {
+    // Step 1: Construct pseudo frontmatter from direct data input
+    const pseudoFrontmatter = {
+      frontmatter: {},
+      content: "",
+      draftFilePath: null,
+    };
+
+    // Generate the post content
+    await generatePostContent(
+      contentFolderPath,
+      pseudoFrontmatter,
+      aiSettings,
+      authorsData,
+      i18n,
+      gptKey,
+      folderName,
+      cloudName,
+      cloudApiKey,
+      cloudinarySecret,
+      true,
+      debug
+    );
+  } catch (err) {
+    console.error("Error processing direct data:", err);
+  }
+}
+module.exports = processPseudoDraft;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DigestPipeline.html">DigestPipeline</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addHackSeconds">addHackSeconds</a></li><li><a href="global.html#authorPrompt">authorPrompt</a></li><li><a href="global.html#contentPrompt">contentPrompt</a></li><li><a href="global.html#createFeed">createFeed</a></li><li><a href="global.html#draftPrompt">draftPrompt</a></li><li><a href="global.html#executeStep">executeStep</a></li><li><a href="global.html#generateAmpStories">generateAmpStories</a></li><li><a href="global.html#generateAtom">generateAtom</a></li><li><a href="global.html#generatePostContent">generatePostContent</a></li><li><a href="global.html#generateRSS">generateRSS</a></li><li><a href="global.html#homePageScrapeLink">homePageScrapeLink</a></li><li><a href="global.html#processDraftFromFile">processDraftFromFile</a></li><li><a href="global.html#processImageGeneration">processImageGeneration</a></li><li><a href="global.html#processPseudoDraft">processPseudoDraft</a></li><li><a href="global.html#prompts">prompts</a></li><li><a href="global.html#promptsToPostProcessor">promptsToPostProcessor</a></li><li><a href="global.html#readDraftFrontmatter">readDraftFrontmatter</a></li><li><a href="global.html#responsePrompt">responsePrompt</a></li><li><a href="global.html#savePostContent">savePostContent</a></li><li><a href="global.html#scrapeContentPrompt">scrapeContentPrompt</a></li><li><a href="global.html#scrapeToAiPipeline">scrapeToAiPipeline</a></li><li><a href="global.html#storyConstructor">storyConstructor</a></li><li><a href="global.html#universalPrompt">universalPrompt</a></li><li><a href="global.html#uploadCloudinary">uploadCloudinary</a></li><li><a href="global.html#writeAdminConfigs">writeAdminConfigs</a></li><li><a href="global.html#writeAdsTxt">writeAdsTxt</a></li><li><a href="global.html#writeAmpStories">writeAmpStories</a></li><li><a href="global.html#writeAtom">writeAtom</a></li><li><a href="global.html#writeRSS">writeRSS</a></li><li><a href="global.html#writeRobotsTxt">writeRobotsTxt</a></li><li><a href="global.html#writeStylesScss">writeStylesScss</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Fri Sep 27 2024 01:26:54 GMT-0300 (Horário Padrão de Brasília)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

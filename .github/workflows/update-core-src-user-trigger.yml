@@ -1,0 +1,65 @@
+name: Update core/src from nextjs-source
+
+on:
+  push:
+    paths:
+      - "content/settings/version.json"
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
+        with:
+          token: ${{ secrets.PAT }}
+
+      - name: Echo Repository Name
+        run: |
+          echo "${{ github.event.repository.name }}"
+          echo "${{ github.actor }}"
+          echo "${{ github.action_repository }}"
+          echo "${{ github.event_name }}"
+          echo "${{ github.repository }}"
+          echo "${{ github.repository_owner }}"
+          echo foi
+
+      - name: Check version.json for update trigger
+        id: check_update
+        run: |
+          UPDATE=$(jq -r '.update' content/settings/version.json)
+          if [ "$UPDATE" != "true" ]; then
+            echo "No update required. Exiting..."
+            exit 0
+          fi
+
+      - name: Remove old core/src files
+        if: ${{ steps.check_update.outcome == 'success' }}
+        run: rm -rf core/src
+
+      - name: Clone nextjs-source repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+        run: |
+          git clone --depth 1 https://$GITHUB_TOKEN@github.com/schindyguy/nextjs-source.git temp-source
+          mkdir core/src
+          cp -R temp-source/* core/src/
+          rm -rf temp-source
+          
+      - name: Reset update trigger
+        if: ${{ steps.check_update.outcome == 'success' }}
+        run: |
+          npm install
+          npm run build
+          git config --global user.name 'schindyguy'
+          git config --global user.email 'bschindelheim@gmail.com'
+          jq '.update = false' content/settings/version.json > temp.json
+          mv temp.json content/settings/version.json
+          git add content/settings/version.json
+          git add .github/workflows/*.yml
+          git commit -m "Reset update trigger"
+          git push https://$GITHUB_TOKEN@github.com/schindyguy/bt-template.git

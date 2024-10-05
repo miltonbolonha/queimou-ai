@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: prompt-digestion/lib/atom.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: prompt-digestion/lib/atom.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const fs = require("fs-extra");
+const path = require("path");
+const showdown = require("showdown");
+const { createFeed, addHackSeconds } = require("./feed");
+
+/**
+ * Generates Atom feed content.
+ *
+ * @param {Object} params - The parameters needed to generate the Atom feed.
+ * @returns {Promise&lt;string>} The generated Atom feed as a string.
+ */
+async function generateAtom(params) {
+  const {
+    postsDatas,
+    pagesDatas,
+    siteDescription,
+    siteUrl,
+    i18n,
+    brandName,
+    brandEmail,
+    logos,
+    categories,
+  } = params;
+
+  if (!postsDatas) {
+    console.log("❌ [Posts Atom]: ERROR.");
+    process.exit(1);
+  }
+  if (!pagesDatas) {
+    console.log("❌ [Pages Atom]: ERROR.");
+    process.exit(1);
+  }
+
+  const feed = createFeed({
+    brandName: brandName,
+    brandEmail: brandEmail,
+    brandDescription: siteDescription,
+    siteUrl: siteUrl,
+    i18n: i18n,
+    cardLogo: logos.cardLogo,
+    faviconLogo: logos.favicon,
+  });
+
+  const converter = new showdown.Converter();
+
+  postsDatas.concat(pagesDatas).forEach((item, index) => {
+    let image = item.frontmatter.image || logos.cardLogo;
+    const imageExt = path.extname(image);
+    if (imageExt === "") image += ".jpg";
+    const content = converter.makeHtml(item.content);
+
+    try {
+      feed.addItem({
+        title: item.frontmatter.title,
+        id: `${siteUrl}/${item.slug}`,
+        link: `${siteUrl}/${item.slug}`,
+        description: item.frontmatter.pageDescription || "no description",
+        content,
+        author: [
+          {
+            name: item.frontmatter.author || brandName,
+            email: brandEmail,
+            link: siteUrl,
+          },
+        ],
+        date: new Date(item.date || addHackSeconds(new Date(), index)),
+        image: `${siteUrl}/${image}`,
+      });
+    } catch (error) {
+      console.log(`❌ [Feed Add Item]: Failure for ${item.frontmatter.title}`);
+      console.log(error);
+    }
+  });
+
+  categories.forEach((cat) => {
+    feed.addCategory(cat);
+  });
+
+  // Output: Atom
+  try {
+    return feed.atom1();
+  } catch (error) {
+    console.log("❌ [Atom Create]: ERROR.", error);
+    process.exit(1);
+  }
+}
+
+/**
+ * Writes the Atom feed to a file in the specified public source folder.
+ *
+ * @param {string} publicSourceFolder - The folder where the Atom feed file will be written.
+ * @param {Object} params - The parameters needed to generate the Atom feed.
+ * @returns {Promise&lt;void>}
+ */
+async function writeAtom(params, publicSourceFolder) {
+  const fileAtomPath = path.join(`${publicSourceFolder}`, `/atom-feed.xml`);
+
+  try {
+    return fs.writeFileSync(fileAtomPath, await generateAtom(params));
+  } catch (error) {
+    console.log(error);
+    return process.stdout.write(`❌ [Atom.xml]: ERROR.`);
+  }
+}
+
+module.exports = writeAtom;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DigestPipeline.html">DigestPipeline</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addHackSeconds">addHackSeconds</a></li><li><a href="global.html#authorPrompt">authorPrompt</a></li><li><a href="global.html#contentPrompt">contentPrompt</a></li><li><a href="global.html#createFeed">createFeed</a></li><li><a href="global.html#draftPrompt">draftPrompt</a></li><li><a href="global.html#executeStep">executeStep</a></li><li><a href="global.html#generateAmpStories">generateAmpStories</a></li><li><a href="global.html#generateAtom">generateAtom</a></li><li><a href="global.html#generatePostContent">generatePostContent</a></li><li><a href="global.html#generateRSS">generateRSS</a></li><li><a href="global.html#processDraftFromFile">processDraftFromFile</a></li><li><a href="global.html#processImageGeneration">processImageGeneration</a></li><li><a href="global.html#processPseudoDraft">processPseudoDraft</a></li><li><a href="global.html#prompts">prompts</a></li><li><a href="global.html#readDraftFrontmatter">readDraftFrontmatter</a></li><li><a href="global.html#responsePrompt">responsePrompt</a></li><li><a href="global.html#savePostContent">savePostContent</a></li><li><a href="global.html#scrapeContentPrompt">scrapeContentPrompt</a></li><li><a href="global.html#scrapeToAiPipeline">scrapeToAiPipeline</a></li><li><a href="global.html#storyConstructor">storyConstructor</a></li><li><a href="global.html#universalPrompt">universalPrompt</a></li><li><a href="global.html#uploadCloudinary">uploadCloudinary</a></li><li><a href="global.html#writeAdminConfigs">writeAdminConfigs</a></li><li><a href="global.html#writeAdsTxt">writeAdsTxt</a></li><li><a href="global.html#writeAmpStories">writeAmpStories</a></li><li><a href="global.html#writeAtom">writeAtom</a></li><li><a href="global.html#writeRSS">writeRSS</a></li><li><a href="global.html#writeRobotsTxt">writeRobotsTxt</a></li><li><a href="global.html#writeStylesScss">writeStylesScss</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Tue Sep 24 2024 10:12:47 GMT-0300 (Horário Padrão de Brasília)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

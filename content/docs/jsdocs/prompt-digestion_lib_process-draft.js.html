@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: prompt-digestion/lib/process-draft.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: prompt-digestion/lib/process-draft.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const fs = require("fs");
+const matter = require("gray-matter");
+const generatePostContent = require("./generate-content");
+const debugMe = require("../utils/debug-me");
+
+/**
+ * Processes a draft file, scrapes web content, and generates a blog post using AI tools.
+ *
+ * @param {string} filePath - Path to the draft markdown file.
+ * @param {object} aiSettings - AI configuration settings.
+ * @param {object} authorsData - Data related to post authors.
+ * @param {object} i18n - Internationalization settings.
+ * @param {boolean} debug - Enables debug mode for logging additional information.
+ */
+async function processDraftFromFile(
+  filePath,
+  aiSettings,
+  authorsData,
+  i18n,
+  debug
+) {
+  debugMe(debug, "Process Draft", {
+    filePath,
+    aiSettings,
+    authorsData,
+    i18n,
+    debug,
+  });
+
+  try {
+    // Step 1: Extract frontmatter and content from the draft file
+    const draftFrontmatter = await readDraftFrontmatter(filePath, false, debug);
+    if (!draftFrontmatter) return null;
+
+    // Generate the post content
+    await generatePostContent(
+      draftFrontmatter,
+      aiSettings,
+      authorsData,
+      i18n,
+      false,
+      debug
+    );
+  } catch (err) {
+    console.error("Error processing draft file:", err);
+  }
+}
+
+/**
+ * Reads the frontmatter and content from a draft markdown file.
+ * If 'autoPost' is true, it returns an empty structure.
+ *
+ * @param {string} filePath - Path to the draft markdown file.
+ * @param {boolean} autoPost - Indicates if the post is being processed automatically without a specific draft.
+ * @param {boolean} debug - Enables debug mode for logging additional information.
+ * @returns {object|null} An object containing the frontmatter, content, and draft file path, or null if an error occurs.
+ */
+async function readDraftFrontmatter(filePath, autoPost, debug) {
+  debugMe(debug, "Read Draft", { filePath, autoPost, debug });
+  if (autoPost) {
+    return { frontmatter: {}, content: "", draftFilePath: null };
+  }
+  try {
+    // Read the content of the draft file
+    const fileContent = fs.readFileSync(filePath, "utf8");
+    const { data, content } = matter(fileContent); // Extract frontmatter and content using gray-matter
+    const draftData = { frontmatter: data, content, draftFilePath: filePath };
+    debugMe(debug, "Assemble Draft", draftData); // Log the extracted data if debugging
+    return draftData;
+  } catch (error) {
+    console.error(`Erro ao ler o arquivo ${filePath}:`, error);
+    return null;
+  }
+}
+
+module.exports = processDraftFromFile;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DigestPipeline.html">DigestPipeline</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addHackSeconds">addHackSeconds</a></li><li><a href="global.html#authorPrompt">authorPrompt</a></li><li><a href="global.html#contentPrompt">contentPrompt</a></li><li><a href="global.html#createFeed">createFeed</a></li><li><a href="global.html#draftPrompt">draftPrompt</a></li><li><a href="global.html#executeStep">executeStep</a></li><li><a href="global.html#generateAmpStories">generateAmpStories</a></li><li><a href="global.html#generateAtom">generateAtom</a></li><li><a href="global.html#generatePostContent">generatePostContent</a></li><li><a href="global.html#generateRSS">generateRSS</a></li><li><a href="global.html#processDraftFromFile">processDraftFromFile</a></li><li><a href="global.html#processImageGeneration">processImageGeneration</a></li><li><a href="global.html#processPseudoDraft">processPseudoDraft</a></li><li><a href="global.html#prompts">prompts</a></li><li><a href="global.html#readDraftFrontmatter">readDraftFrontmatter</a></li><li><a href="global.html#responsePrompt">responsePrompt</a></li><li><a href="global.html#savePostContent">savePostContent</a></li><li><a href="global.html#scrapeContentPrompt">scrapeContentPrompt</a></li><li><a href="global.html#scrapeToAiPipeline">scrapeToAiPipeline</a></li><li><a href="global.html#storyConstructor">storyConstructor</a></li><li><a href="global.html#universalPrompt">universalPrompt</a></li><li><a href="global.html#uploadCloudinary">uploadCloudinary</a></li><li><a href="global.html#writeAdminConfigs">writeAdminConfigs</a></li><li><a href="global.html#writeAdsTxt">writeAdsTxt</a></li><li><a href="global.html#writeAmpStories">writeAmpStories</a></li><li><a href="global.html#writeAtom">writeAtom</a></li><li><a href="global.html#writeRSS">writeRSS</a></li><li><a href="global.html#writeRobotsTxt">writeRobotsTxt</a></li><li><a href="global.html#writeStylesScss">writeStylesScss</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.3</a> on Tue Sep 24 2024 10:12:47 GMT-0300 (Horário Padrão de Brasília)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
