@@ -1,7 +1,6 @@
 import React from "react";
 
 import scheduledPosts from "@/content/cache/scheduledPosts.json";
-import scheduledPosts from "@/content/cache/version.json";
 import draftJSON from "@/content/cache/allPostsDraftMode.json";
 
 import { getDraftDataBySlug } from "@/src/lib/getDatas";

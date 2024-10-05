@@ -1,6 +1,6 @@
 backend:
   name: git-gateway
-  repo: mt
+  repo: queimou-ai
   branch: master
   site_domain: https://queimou.ai
 
@@ -9,8 +9,8 @@ public_folder: ""
 media_library:
   name: cloudinary
   config:
-    cloud_name: dj0et6kq4
-    api_key: 232148336835128
+    cloud_name: dyxuhpt7j
+    api_key: 338884965113117
 
 publish_mode: simple
 
@@ -36,7 +36,7 @@ collections:
       - label: Drafts
         field: draft
         pattern: true
-    sortable_fields: ["date", "title"]
+    sortable_fields: ['date', 'title']
     description: >
       Markdown posts.
     create: true
@@ -50,12 +50,7 @@ collections:
           format: "YYYY-MM-DD HH:mm:ss",
           required: true,
         }
-      - {
-          label: "Author",
-          name: "author",
-          widget: "string",
-          default: "Boilerplate Times",
-        }
+      - { label: "Author", name: "author", widget: "string", default: "Boilerplate Times" }
       - {
           label: "Categories",
           name: "categories",
@@ -110,75 +105,15 @@ collections:
       preview: false
     slug: "{{slug}}"
     fields:
-      - {
-          label: "Prompt Name",
-          name: "title",
-          widget: "string",
-          required: true,
-        }
-      - {
-          label: "Web Scraping URL Links",
-          name: "linkAiDraft",
-          widget: "list",
-          required: false,
-          hint: https://someportal.com/breaking-news-today,
-          fields: [{ label: "Link", name: "linkUrl", widget: "string" }],
-        }
-      - {
-          label: "Author",
-          name: "author",
-          widget: "relation",
-          collection: "ai_authors",
-          search_fields: ["title"],
-          value_field: "title",
-          display_fields: ["title"],
-        }
-      - {
-          label: "Use Author's Prompt",
-          name: "authorsPrompt",
-          widget: "boolean",
-          default: true,
-          required: false,
-        }
-      - {
-          label: "Use Universal Prompt",
-          name: "universalPrompt",
-          widget: "boolean",
-          default: true,
-          required: false,
-        }
-      - {
-          label: "Main Prompt",
-          name: "body",
-          widget: "markdown",
-          required: false,
-        }
-      - {
-          label: "Main Image Prompt",
-          name: "main_image_prompt",
-          widget: "markdown",
-          required: false,
-        }
-      - {
-          label: "Additional Image Prompts",
-          name: "additional_image_prompts",
-          widget: "list",
-          required: false,
-          fields:
-            [
-              {
-                label: "Image Prompt",
-                name: "image_prompt",
-                widget: "markdown",
-              },
-            ],
-        }
-      - {
-          label: "Category",
-          name: "category",
-          widget: "string",
-          required: false,
-        }
+      - { label: "Prompt Name", name: "title", widget: "string", required: true }
+      - { label: "Web Scraping URL Links", name: "linkAiDraft", widget: "list", required: false, hint: https://someportal.com/breaking-news-today, fields: [{ label: "Link", name: "linkUrl", widget: "string" }] }
+      - { label: "Author", name: "author", widget: "relation", collection: "ai_authors", search_fields: ["title"], value_field: "title", display_fields: ["title"] }
+      - { label: "Use Author's Prompt", name: "authorsPrompt", widget: "boolean", default: true, required: false }
+      - { label: "Use Universal Prompt", name: "universalPrompt", widget: "boolean", default: true, required: false }
+      - { label: "Main Prompt", name: "body", widget: "markdown", required: false }
+      - { label: "Main Image Prompt", name: "main_image_prompt", widget: "markdown", required: false }
+      - { label: "Additional Image Prompts", name: "additional_image_prompts", widget: "list", required: false, fields: [{ label: "Image Prompt", name: "image_prompt", widget: "markdown" }] }
+      - { label: "Category", name: "category", widget: "string", required: false }
   - name: "ai_authors"
     label: "Authors"
     folder: "content/ai_authors"
@@ -188,12 +123,7 @@ collections:
     slug: "{{slug}}"
     fields:
       - { label: "Name", name: "title", widget: "string" }
-      - {
-          label: "Author's Prompt",
-          name: "body",
-          widget: "markdown",
-          required: true,
-        }
+      - { label: "Author's Prompt", name: "body", widget: "markdown", required: true }
   - name: settings
     label: "Settings"
     delete: false # Prevent users from deleting documents in this collection
@@ -228,7 +158,7 @@ collections:
               - "gpt-3.5-turbo"
             default: "Off"
             hint: "Turn off or choose how often to generate auto posts."
-            required: false
+            required: false  
           - label: "Universal Prompt"
             name: body
             widget: markdown
@@ -399,7 +329,7 @@ collections:
                   widget: string,
                   hint: "G-",
                   required: false,
-                }
+                }              
       - name: "business"
         label: "Business Settings"
         file: "content/settings/business.json"

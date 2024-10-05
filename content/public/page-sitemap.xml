@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
       <?xml-stylesheet type="text/xsl" href="/template.xsl"?>
-        <!-- Created in Wed Oct 02 2024 16:05:28 GMT-0300 (Horário Padrão de Brasília) -->
+        <!-- Created in Sat Oct 05 2024 11:04:38 GMT-0300 (Horário Padrão de Brasília) -->
         <urlset
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd"
           xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
           <url>
+            <loc>https://queimou.ai/terms-and-conditions</loc>
+            <lastmod>2024-10-05T14:04:36.732Z</lastmod>
+            
+          </url>,<url>
             <loc>https://queimou.ai/advertising-disclosure</loc>
-            <lastmod>2024-10-02T19:05:23.947Z</lastmod>
+            <lastmod>2024-10-05T14:04:36.731Z</lastmod>
             
           </url>,<url>
             <loc>https://queimou.ai/privacy-policy</loc>
-            <lastmod>2024-10-02T19:05:23.947Z</lastmod>
-            
-          </url>,<url>
-            <loc>https://queimou.ai/terms-and-conditions</loc>
-            <lastmod>2024-10-02T19:05:23.947Z</lastmod>
+            <lastmod>2024-10-05T14:04:36.731Z</lastmod>
             
           </url>,<url>
             <loc>https://queimou.ai/about-us</loc>
-            <lastmod>2024-10-02T19:05:23.946Z</lastmod>
+            <lastmod>2024-10-05T14:04:36.730Z</lastmod>
             
           </url>
       </urlset>
